@@ -20,6 +20,7 @@ jobs:
 
       - name: Pack everything
         run: |
+          echo "$AWS_ACCESS_KEY_ID"
           export v=$(date +%s)
           cd src
           zip -r ../src-$v.zip *
