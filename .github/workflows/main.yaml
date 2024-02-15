@@ -40,6 +40,8 @@ jobs:
           aws apigateway delete-base-path-mapping --domain-name dev.mlesniak.com --base-path "demo"
 
       # Forces redeployment of the lambda as well
+      # Note: initial bootstrap via create-stack has to be done
+      #       manually (once in the beginning).
       - name: Update stack
         run: |
           aws cloudformation update-stack \
@@ -61,4 +63,9 @@ jobs:
             --rest-api-id om8w6g3evh \
             --stage prod \
             --base-path "demo"
-          
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+          AWS_DEFAULT_OUTPUT: json
+
