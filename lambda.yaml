@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  LambdaCodeVersion:
+    Description: Version identifier
+    Type: String
+
+Resources:
+  SourceCodeBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: "code.mlesniak.com"
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaS3ExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: 'arn:aws:logs:*:*:*'
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource: 'arn:aws:s3:::code.mlesniak.com/*'
+
+  DemoLambda:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: code.mlesniak.com
+        S3Key: !Sub 'src-${LambdaCodeVersion}.zip'
+      Runtime: nodejs20.x
+      Timeout: 30
+
+  DemoLambdaPublicUrl:
+    Type: 'AWS::Lambda::Url'
+    Properties:
+      AuthType: 'NONE'
+      TargetFunctionArn: !GetAtt DemoLambda.Arn
+
+  DemoLambdaPublicPermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      Action: 'lambda:InvokeFunctionUrl'
+      Principal: '*'
+      FunctionUrlAuthType: 'NONE'
+      FunctionName: !Ref DemoLambda
+
+
+Outputs:
+  LambdaFunctionName:
+    Description: The name of the Lambda function
+    Value: !Ref DemoLambda
+  LambdaFunctionArn:
+    Description: The ARN of the Lambda function
+    Value: !GetAtt DemoLambda.Arn
+  LambdaFunctionUrl:
+    Value: !GetAtt DemoLambdaPublicUrl.FunctionUrl
