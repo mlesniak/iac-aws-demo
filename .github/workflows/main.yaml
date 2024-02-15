@@ -33,6 +33,7 @@ jobs:
           AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
           AWS_DEFAULT_OUTPUT: json
 
+      # Forces redeployment of the lambda as well
       - name: Update stack
         run: |
           aws cloudformation update-stack \
