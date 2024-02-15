@@ -9,6 +9,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     environment: AWS
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+      AWS_DEFAULT_OUTPUT: json
     steps:
       - uses: actions/checkout@v2
         name: Checkout
@@ -27,22 +32,12 @@ jobs:
           zip -r ../src-${{ env.CURRENT_TIME }}.zip *
           cd ..
           aws s3 cp src-${{ env.CURRENT_TIME }}.zip s3://code.mlesniak.com
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
-          AWS_DEFAULT_OUTPUT: json
 
       # Clear base path, since it's managed outside the template
       - name: Remove base path if possible
         continue-on-error: true
         run: |
           aws apigateway delete-base-path-mapping --domain-name dev.mlesniak.com --base-path "demo"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
-          AWS_DEFAULT_OUTPUT: json
 
       # Forces redeployment of the lambda as well
       # Note: initial bootstrap via create-stack has to be done
@@ -54,11 +49,6 @@ jobs:
             --template-body file://lambda.yaml \
             --parameters ParameterKey=LambdaCodeVersion,ParameterValue=${{ env.CURRENT_TIME }} \
             --capabilities CAPABILITY_IAM
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
-          AWS_DEFAULT_OUTPUT: json
 
       # Create base path to our custom domain
       - name: Create base path
@@ -68,9 +58,4 @@ jobs:
             --rest-api-id om8w6g3evh \
             --stage prod \
             --base-path "demo"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
-          AWS_DEFAULT_OUTPUT: json
 
