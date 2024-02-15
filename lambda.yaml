@@ -6,10 +6,10 @@ Parameters:
     Type: String
 
 Resources:
-  SourceCodeBucket:
-    Type: 'AWS::S3::Bucket'
-    Properties:
-      BucketName: "code.mlesniak.com"
+#  SourceCodeBucket:
+#    Type: 'AWS::S3::Bucket'
+#    Properties:
+#      BucketName: "code.mlesniak.com"
 
   LambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -64,6 +64,51 @@ Resources:
       FunctionUrlAuthType: 'NONE'
       FunctionName: !Ref DemoLambda
 
+  MyApiGateway:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: MyAPI
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt DemoLambda.Arn
+      Principal: apigateway.amazonaws.com
+      # Optionally, restrict to a specific source ARN if needed:
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${MyApiGateway}/prod/*
+
+  #  GitHubResource:
+#    Type: AWS::ApiGateway::Resource
+#    Properties:
+#      ParentId: !GetAtt MyApiGateway.RootResourceId
+#      PathPart: "github"
+#      RestApiId: !Ref MyApiGateway
+
+  GitHubMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: GET  # Choose GET or POST depending on your Lambda's expected method
+      ResourceId: !GetAtt MyApiGateway.RootResourceId
+#      ResourceId: !Ref GitHubResource
+      RestApiId: !Ref MyApiGateway
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST  # This is always POST for Lambda integrations
+        Uri: !Sub arn:aws:apigateway:eu-central-1:lambda:path/2015-03-31/functions/${DemoLambda.Arn}/invocations
+
+  ApiGatewayDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - GitHubMethod  # Ensure the method is created before deploying
+    Properties:
+      RestApiId: !Ref MyApiGateway
+      Description: 'My API deployment'
+      StageName: prod
 
 Outputs:
   LambdaFunctionName:
