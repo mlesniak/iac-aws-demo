@@ -44,7 +44,7 @@ jobs:
       # Note: initial bootstrap via create-stack has to be done
       #       manually (once in the beginning).
       - name: Create or update stack
-        run: .github/workflows/create-or-update.sh
+        run: .github/workflows/create-or-update-stack.sh
  
       # Create base path to our custom domain
       - name: Create base path
