@@ -35,6 +35,7 @@ jobs:
 
       - name: Update stack
         run: |
+          echo ${{ env.CURRENT_TIME }}
           aws cloudformation update-stack \
             --stack-name demo \
             --template-body file://lambda.yaml 
