@@ -6,3 +6,7 @@
     AWS_SECRET_ACCESS_KEY=...
     AWS_DEFAULT_REGION=eu-central-1
     
+
+## TODO
+
+Use https://github.com/aws-actions/configure-aws-credentials
