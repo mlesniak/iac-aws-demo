@@ -36,7 +36,7 @@ jobs:
       - name: Update stack
         run: |
           echo ${{ env.CURRENT_TIME }}
-          aws cloudformation update-stack \
+          echo aws cloudformation update-stack \
             --stack-name demo \
             --template-body file://lambda.yaml 
             --parameters ParameterKey=LambdaCodeVersion,ParameterValue=${{ env.CURRENT_TIME }} \
