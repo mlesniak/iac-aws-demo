@@ -43,13 +43,31 @@ jobs:
       # Forces redeployment of the lambda as well
       # Note: initial bootstrap via create-stack has to be done
       #       manually (once in the beginning).
-      - name: Update stack
+      - name: Create or update stack
         run: |
-          aws cloudformation update-stack \
-            --stack-name demo \
-            --template-body file://lambda.yaml \
-            --parameters ParameterKey=LambdaCodeVersion,ParameterValue=${{ env.CURRENT_TIME }} \
-            --capabilities CAPABILITY_IAM
+          STACK_NAME="demo"
+          TEMPLATE_FILE="lambda.yaml"
+          
+          # Check if the stack exists
+          aws cloudformation describe-stacks --stack-name $STACK_NAME > /dev/null 2>&1
+          
+          # Capture the exit code of the previous command
+          STATUS=$?
+          
+          if [ $STATUS -eq 0 ]; then
+            echo "Stack exists, updating stack..."
+            # Update the stack
+            aws cloudformation update-stack --stack-name $STACK_NAME \
+              --template-body file://$TEMPLATE_FILE \
+              --parameters ParameterKey=LambdaCodeVersion,ParameterValue=${{ env.CURRENT_TIME }} \
+              --capabilities CAPABILITY_IAM
+          else
+            echo "Stack does not exist, creating stack..."
+            aws cloudformation create-stack --stack-name $STACK_NAME \
+              --template-body file://$TEMPLATE_FILE \
+              --parameters ParameterKey=LambdaCodeVersion,ParameterValue=${{ env.CURRENT_TIME }} \
+              --capabilities CAPABILITY_IAM 
+          fi
 
       # Create base path to our custom domain
       - name: Create base path
