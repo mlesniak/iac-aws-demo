@@ -1,0 +1,34 @@
+name: Build and deploy
+
+on:
+  push:
+    branches: [main]
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        name: Checkout
+
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install awscli
+
+      - name: Pack everything
+        run: |
+          export v=$(date +%s)
+          cd src
+          zip -r ../src-$v.zip *
+          cd ..
+          aws s3 cp src-$v.zip s3://code.mlesniak.com
+
+      - name: Update stack
+        run: |
+          aws cloudformation update-stack \
+            --stack-name demo \
+            --template-body file://lambda.yaml 
+            --parameters ParameterKey=LambdaCodeVersion,ParameterValue=$v \
+            --capabilities CAPABILITY_IAM
