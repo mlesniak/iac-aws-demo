@@ -35,9 +35,9 @@ jobs:
 
       # Clear base path, since it's managed outside the template
       - name: Remove base path if possible
+        continue-on-error: true
         run: |
-          aws apigateway delete-base-path-mapping --domain-name dev.mlesniak.com --base-path "demo" && \
-          echo        
+          aws apigateway delete-base-path-mapping --domain-name dev.mlesniak.com --base-path "demo"
 
       # Forces redeployment of the lambda as well
       - name: Update stack
