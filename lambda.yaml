@@ -119,3 +119,5 @@ Outputs:
     Value: !GetAtt DemoLambda.Arn
   LambdaFunctionUrl:
     Value: !GetAtt DemoLambdaPublicUrl.FunctionUrl
+  RestApiId:
+    Value: !GetAtt MyApiGateway.RestApiId

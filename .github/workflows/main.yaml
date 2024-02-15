@@ -49,9 +49,10 @@ jobs:
       # Create base path to our custom domain
       - name: Create base path
         run: |
+          id=$(aws cloudformation describe-stacks --stack-name demo --query "Stacks[0].Outputs[?OutputKey=='RestApiId'].OutputValue" --output text)
           aws apigateway create-base-path-mapping \
             --domain-name dev.mlesniak.com \
-            --rest-api-id om8w6g3evh \
+            --rest-api-id $id \
             --stage prod \
             --base-path "demo"
 
